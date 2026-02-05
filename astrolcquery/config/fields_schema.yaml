@@ -1,0 +1,15 @@
+GLOBAL:
+  times: "Observation time, usually in MJD (Modified Julian Date)."
+  mags: "Apparent magnitude in the specified filter."
+  magerrs: "1-sigma uncertainty of the magnitude."
+
+ZTF:
+  seeing: |
+    The Full Width at Half Maximum (FWHM) of the PSF during observation.
+    Measured in arcseconds.
+  catflags: "Internal ZTF pipeline flags. 0 usually means good data."
+  apt_ra: "The RA of the aperture center used for photometry."
+
+ASAS-SN:
+  amplitude: "The difference between maximum and minimum magnitude."
+  hjd: "Heliocentric Julian Date."
