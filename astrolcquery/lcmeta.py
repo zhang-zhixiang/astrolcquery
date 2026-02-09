@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from astropy.coordinates import SkyCoord, EarthLocation
 from typing import Optional, Dict, Any, Literal, get_args
 from .utils import get_location
+from .phot_utils import BandInfo
 
 
 SURVEY_LITERAL = Literal["ZTF", "ASAS-SN", "Catalina", "TESS", "WISE"]
@@ -42,14 +43,6 @@ class FacilityInfo:
         if self._location_cache is None:
             self._location_cache = get_location(self.survey, self.telescope)
         return self._location_cache
-
-
-@dataclass
-class BandInfo:
-    band: str  # e.g., 'g', 'W1'
-    unit_system: str = 'AB' # 'AB', 'Vega', or 'Jy'
-    wavelength_eff: Optional[float] = None
-    bandwidth: Optional[float] = None 
 
 
 class LCMeta:
