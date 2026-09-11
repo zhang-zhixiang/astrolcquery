@@ -9,3 +9,8 @@ htmlcov/
 .DS_Store
 .venv/
 pyasassn-*/
+
+# reference material (design discussion logs), not part of the package
+LightCurve 类设计与模块化.md
+Python 包设计：测光巡天光变曲线.md
+天文光变曲线类设计.md
