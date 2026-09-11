@@ -1,15 +1,33 @@
 GLOBAL:
-  times: "Observation time, usually in MJD (Modified Julian Date)."
-  mags: "Apparent magnitude in the specified filter."
-  magerrs: "1-sigma uncertainty of the magnitude."
+  time: "Observation time. Stored internally as MJD, but jd/hjd/bjd are derived on demand."
+  mag: "Apparent magnitude in the band's native photometric system."
+  mag_err: "1-sigma (1-sigma) uncertainty on the magnitude."
+  flux: "Flux in the band's native flux unit (default erg / (cm^2 s Angstrom))."
+  flux_err: "1-sigma uncertainty on the flux."
+  band: "Band / filter identifier of the observation."
+  quality: "Generic quality flag; 0 usually means good data."
 
 ZTF:
   seeing: |
-    The Full Width at Half Maximum (FWHM) of the PSF during observation.
-    Measured in arcseconds.
+    The Full Width at Half Maximum (FWHM) of the PSF during observation,
+    measured in arcseconds.
   catflags: "Internal ZTF pipeline flags. 0 usually means good data."
   apt_ra: "The RA of the aperture center used for photometry."
+  apt_dec: "The Declination of the aperture center used for photometry."
 
 ASAS-SN:
-  amplitude: "The difference between maximum and minimum magnitude."
-  hjd: "Heliocentric Julian Date."
+  hjd: "Heliocentric Julian Date as provided by the survey."
+  site: "ASAS-SN site code of the observing telescope."
+
+Catalina:
+  sb: "Sky background level."
+  filt: "Filter of the CSS observation (V-band is common)."
+
+TESS:
+  sap_flux: "Simple Aperture Photometry flux."
+  pdcsap_flux: "Pre-search Data Conditioning SAP flux (systematics-corrected)."
+  quality: "TESS-specific quality flags."
+
+WISE:
+  w1: "WISE W1 (3.4 microns) flux or magnitude."
+  w2: "WISE W2 (4.6 microns) flux or magnitude."

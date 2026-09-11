@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "astrolcquery"
+dynamic = ["version"]
+description = "Query and download multi-survey astronomical light curves with a unified API."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "astrolcquery developers" }]
+keywords = ["astronomy", "lightcurve", "photometry", "survey", "ZTF", "ASAS-SN", "TESS", "WISE", "Catalina"]
+dependencies = [
+    "numpy",
+    "pandas",
+    "astropy",
+    "matplotlib",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+all = ["astroquery", "lightkurve", "pyasassn", "pyarrow"]
+test = ["pytest", "pyarrow"]
+
+[project.scripts]
+lcquery = "astrolcquery.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["astrolcquery*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "astrolcquery._version.__version__" }
+
+[tool.setuptools.package-data]
+astrolcquery = ["config/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "website: live network integration tests against real survey APIs (run with pytest --website)",
+]

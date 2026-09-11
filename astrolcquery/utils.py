@@ -1,60 +1,76 @@
-from astropy.coordinates import EarthLocation
+from typing import Union, Tuple, Optional
+
+import astropy.units as u
+from astropy.coordinates import EarthLocation, SkyCoord
+
+_SURVEY_TO_SITE = {
+    "ZTF": "Palomar",
+    "CATALINA": "Mt. Lemmon Survey",
+    "ASASSN": "Cerro Tololo",
+    "SYNTHETIC": "Cerro Tololo",
+}
+
+_SPACE_SURVEYS = {"TESS", "WISE", "JWST", "SWIFT", "SDSS", "SYNTHETIC"}
+
+_ASASSN_SITE_MAP = {
+    "ct": "Cerro Tololo",
+    "cl": "Cerro Tololo",
+    "sa": "Sutherland",
+    "hi": "Haleakala",
+    "tx": "McDonald Observatory",
+    "wa": "Siding Spring Observatory",
+    "cn": "Teide Observatory",
+}
 
 
-def get_asassn_site_location(site_code: str):
+def get_asassn_site_location(site_code: str) -> EarthLocation:
     code = site_code.lower().strip()
-    ASASSN_SITE_MAP = {
-        "ct": "Cerro Tololo",          # 智利 (Chile)
-        "cl": "Cerro Tololo",          # 智利常用别名
-        "sa": "Sutherland",            # 南非 (South Africa)
-        "hi": "Haleakala",             # 夏威夷 (Hawaii, Maui)
-        "tx": "McDonald Observatory",  # 德克萨斯 (Texas)
-        "wa": "Siding Spring Observatory", # 澳洲 (Western Australia/NSW)
-        "cn": "Teide Observatory",     # 加那利群岛 (Canary Islands, Tenerife)
-    }
-
-    site_full_name = ASASSN_SITE_MAP.get(code)
-
-    if not site_full_name:
-        import warnings
-        warnings.warn(f"Unknown ASASSN site code: {site_code}. Defaulting to Cerro Tololo.")
-        code = "ct"  # Default to Cerro Tololo if unknown code is provided
-        site_full_name = ASASSN_SITE_MAP[code]
-
-    return EarthLocation.of_site(site_full_name)
+    full = _ASASSN_SITE_MAP.get(code)
+    if full is None:
+        raise ValueError(
+            f"Unknown ASAS-SN site code '{site_code}'. "
+            f"Valid codes: {sorted(_ASASSN_SITE_MAP)}"
+        )
+    return EarthLocation.of_site(full)
 
 
-def _actually_query_astropy(survey, site_name=None):
-    name = survey.upper().replace("-", "")
-    survey_to_site = {
-        "ZTF": "Palomar",
-        "CATALINA": "Mt. Lemmon Survey",
-        "PANSTARRS": "Haleakala",
-        "SDSS": "Apache Point",
-    }
-
-    if name in ["TESS", "WISE", "SWIFT", "JWST"]:
-        return EarthLocation.from_geocentric(0, 0, 0, unit='m')
-    
-    if name == 'ASASSN':
+def _resolve_location(survey: str, site_name: Optional[str]) -> EarthLocation:
+    name = survey.upper().replace("-", "").replace(" ", "")
+    if name in _SPACE_SURVEYS:
+        return EarthLocation.from_geocentric(0, 0, 0, unit="m")
+    if name == "ASASSN":
         if site_name:
-            try:
-                return get_asassn_site_location(site_name)
-            except Exception:
-                pass
+            return get_asassn_site_location(site_name)
         return EarthLocation.of_site("Cerro Tololo")
+    if name in _SURVEY_TO_SITE:
+        return EarthLocation.of_site(_SURVEY_TO_SITE[name])
+    if site_name:
+        return EarthLocation.of_site(site_name)
+    raise ValueError(
+        f"Cannot determine location for survey '{survey}'. Provide a site_name."
+    )
 
-    if name in survey_to_site:
-        return EarthLocation.of_site(survey_to_site[name])
 
-    raise ValueError(f"Unknown survey: {survey}. Please provide a valid survey name.")
+_LOCATION_CACHE = {}
 
 
-_GLOBAL_SITE_CACHE = {}
+def get_location(survey: str, site_name: Optional[str] = None) -> EarthLocation:
+    key = f"{survey}|{site_name}"
+    if key not in _LOCATION_CACHE:
+        _LOCATION_CACHE[key] = _resolve_location(survey, site_name)
+    return _LOCATION_CACHE[key]
 
 
-def get_location(survey, site_name=None):
-    key = f"{survey}_{site_name}"
-    if key not in _GLOBAL_SITE_CACHE:
-        _GLOBAL_SITE_CACHE[key] = _actually_query_astropy(survey, site_name)
-    return _GLOBAL_SITE_CACHE[key]
+def parse_coord(target, unit=(u.deg, u.deg)) -> SkyCoord:
+    if isinstance(target, SkyCoord):
+        return target
+    if isinstance(target, (list, tuple)):
+        if len(target) != 2:
+            raise ValueError("Coordinates must be (ra, dec).")
+        return SkyCoord(target[0], target[1], unit=unit)
+    if isinstance(target, str):
+        pieces = [p for p in target.replace(",", " ").split() if p]
+        if len(pieces) == 2:
+            return SkyCoord(pieces[0], pieces[1], unit=unit)
+        return SkyCoord(target)
+    raise ValueError(f"Cannot parse coordinate from {target!r}.")
